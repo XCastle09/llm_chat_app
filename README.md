@@ -31,7 +31,7 @@
 
 ## 🏗 Архитектура
 
-### Выбранный подход: **SPA + MCS**
+### Выбранный подход: SPA + MCS
 
 - **SPA (Single-Page Application)** – фронтенд загружается один раз, все взаимодействия с сервером происходят через `fetch API`, страница не перезагружается.
 - **MCS (Model-Controller-Service)** – серверная архитектура, где:
@@ -40,77 +40,59 @@
   - **Service** (сервисы) – вся бизнес-логика (папка `services/`)
 
 ### Как работают JWT + Refresh токены + Redis:
-Пользователь входит (POST /auth/login)
-↓
 
-Сервер создаёт:
-
-Access token (срок жизни 15 минут) – для доступа к API
-
-Refresh token (срок жизни 30 дней) – для обновления access токена
-↓
-
-Refresh token сохраняется в Redis по ключу refresh:{user_id}
-с TTL 30 дней
-↓
-
-Клиент хранит оба токена в localStorage
-↓
-
-При каждом запросе клиент отправляет Access token в заголовке
-Authorization: Bearer {access_token}
-↓
-
-При истечении Access token (ошибка 401):
-
-Клиент отправляет Refresh token на /auth/refresh
-
-Сервер проверяет Refresh token в Redis
-
-Если валиден – выдаёт новый Access token
-↓
-
-Если Refresh token истёк или не найден в Redis –
-пользователь должен войти заново
-
-text
+1. Пользователь входит (POST /auth/login)
+2. Сервер создаёт:
+   - Access token (срок жизни 15 минут) – для доступа к API
+   - Refresh token (срок жизни 30 дней) – для обновления access токена
+3. Refresh token сохраняется в Redis по ключу `refresh:{user_id}` с TTL 30 дней
+4. Клиент хранит оба токена в localStorage
+5. При каждом запросе клиент отправляет Access token в заголовке `Authorization: Bearer {access_token}`
+6. При истечении Access token (ошибка 401):
+   - Клиент отправляет Refresh token на /auth/refresh
+   - Сервер проверяет Refresh token в Redis
+   - Если валиден – выдаёт новый Access token
+7. Если Refresh token истёк или не найден в Redis – пользователь должен войти заново
 
 ---
 
 ## 📁 Структура кода
+
+```
 llm_chat_app/
 ├── app/
-│ ├── init.py
-│ ├── main.py # FastAPI приложение
-│ ├── config.py # Загрузка .env
-│ ├── database.py # SQLAlchemy engine + session
-│ ├── models.py # Модели: User, Chat, Message
-│ ├── schemas.py # Pydantic схемы
-│ ├── dependencies.py # get_current_user (JWT проверка)
-│ ├── redis_client.py # Подключение к Redis
-│ ├── llm_service.py # Загрузка GGUF модели
-│ │
-│ ├── routers/ # КОНТРОЛЛЕРЫ (только маршруты)
-│ │ ├── auth.py # /auth/* эндпоинты
-│ │ ├── chats.py # /chats/* эндпоинты
-│ │ └── ask.py # /ask эндпоинт
-│ │
-│ ├── services/ # СЕРВИСЫ (бизнес-логика)
-│ │ ├── auth_service.py # JWT, хэширование, Redis
-│ │ ├── chat_service.py # Работа с чатами
-│ │ └── llm_chat_service.py # LLM + сохранение сообщений
-│ │
-│ └── static/ # SPA фронтенд
-│ ├── index.html
-│ ├── style.css
-│ └── script.js
+│   ├── __init__.py
+│   ├── main.py                 # FastAPI приложение
+│   ├── config.py               # Загрузка .env
+│   ├── database.py             # SQLAlchemy engine + session
+│   ├── models.py               # Модели: User, Chat, Message
+│   ├── schemas.py              # Pydantic схемы
+│   ├── dependencies.py         # get_current_user (JWT проверка)
+│   ├── redis_client.py         # Подключение к Redis
+│   ├── llm_service.py          # Загрузка GGUF модели
+│   │
+│   ├── routers/                # КОНТРОЛЛЕРЫ (только маршруты)
+│   │   ├── auth.py             # /auth/* эндпоинты
+│   │   ├── chats.py            # /chats/* эндпоинты
+│   │   └── ask.py              # /ask эндпоинт
+│   │
+│   ├── services/               # СЕРВИСЫ (бизнес-логика)
+│   │   ├── auth_service.py     # JWT, хэширование, Redis
+│   │   ├── chat_service.py     # Работа с чатами
+│   │   └── llm_chat_service.py # LLM + сохранение сообщений
+│   │
+│   └── static/                 # SPA фронтенд
+│       ├── index.html
+│       ├── style.css
+│       └── script.js
 │
-├── models/ # GGUF файлы LLM
-├── migrations/ # Alembic миграции
+├── models/                     # GGUF файлы LLM
+├── migrations/                 # Alembic миграции
 ├── requirements.txt
-├── .env.example # Пример переменных окружения
+├── .env.example                # Пример переменных окружения
 ├── .gitignore
 └── README.md
+```
 
 ---
 
@@ -124,35 +106,40 @@ llm_chat_app/
 - Redis (установлен и запущен)
 - 8+ ГБ оперативной памяти (для работы LLM)
 
----
-
 ### Шаг 1: Клонирование репозитория
 
 ```bash
 git clone https://github.com/XCastle09/llm_chat_app.git
 cd llm_chat_app
+```
 
 ### Шаг 2: Создание виртуального окружения
 
+```bash
 python -m venv venv
-Активация:
+```
 
-Windows: venv\Scripts\activate
-
-macOS/Linux: source venv/bin/activate
+**Активация:**
+- Windows: `venv\Scripts\activate`
+- macOS/Linux: `source venv/bin/activate`
 
 ### Шаг 3: Установка зависимостей
 
+```bash
 pip install -r requirements.txt
+```
 
 ### Шаг 4: Настройка переменных окружения
-Скопируйте .env.example в .env:
 
-copy .env.example .env   # Windows
-cp .env.example .env      # macOS/Linux
-Откройте файл .env и заполните свои значения:
+1. Скопируйте `.env.example` в `.env`:
+   ```bash
+   copy .env.example .env   # Windows
+   cp .env.example .env      # macOS/Linux
+   ```
 
-env
+2. Откройте файл `.env` и заполните свои значения:
+
+```env
 # PostgreSQL (замените your_password на ваш пароль)
 DATABASE_URL=postgresql+asyncpg://postgres:your_password@localhost:5432/llm_chat
 SYNC_DATABASE_URL=postgresql://postgres:your_password@localhost:5432/llm_chat
@@ -170,55 +157,87 @@ GITHUB_REDIRECT_URI=http://localhost:8000/auth/github/callback
 
 # Путь к LLM модели
 LLM_MODEL_PATH=./models/your_model.gguf
-Как сгенерировать SECRET_KEY:
+```
 
+**Как сгенерировать SECRET_KEY:**
+```bash
 python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
 
 ### Шаг 5: Настройка баз данных
-PostgreSQL:
+
+#### PostgreSQL:
+
 Войдите в psql:
-
-bash
+```bash
 psql -U postgres -h localhost -p 5432
-Введите пароль, затем создайте базу данных:
+```
 
-sql
+Введите пароль, затем создайте базу данных:
+```sql
 CREATE DATABASE llm_chat;
 \q
-Примените миграции Alembic:
-bash
-alembic upgrade head
-Redis:
-Убедитесь, что Redis запущен. Проверка:
+```
 
-bash
+#### Примените миграции Alembic:
+```bash
+alembic upgrade head
+```
+
+#### Redis:
+Убедитесь, что Redis запущен. Проверка:
+```bash
 redis-cli ping
 # Должен ответить PONG
+```
+
 ### Шаг 6: Скачивание LLM модели
-Скачайте GGUF модель (рекомендуется Saiga YandexGPT 8B) с Hugging Face
 
-Поместите файл .gguf в папку models/
-
-Укажите путь в .env (переменная LLM_MODEL_PATH)
+1. Скачайте GGUF модель (рекомендуется Saiga YandexGPT 8B) с Hugging Face
+2. Поместите файл `.gguf` в папку `models/`
+3. Укажите путь в `.env` (переменная `LLM_MODEL_PATH`)
 
 ### Шаг 7: Запуск приложения
-bash
+
+```bash
 uvicorn app.main:app --reload --port 8000
-Откройте браузер: http://localhost:8000
+```
+
+Откройте браузер: **http://localhost:8000**
 
 ### Шаг 8: Настройка GitHub OAuth (опционально)
-Перейдите на GitHub → Settings → Developer settings → OAuth Apps
 
-Нажмите New OAuth App
+1. Перейдите на GitHub → Settings → Developer settings → OAuth Apps
+2. Нажмите `New OAuth App`
+3. Заполните:
+   - **Application name:** `LLM Chat App`
+   - **Homepage URL:** `http://localhost:8000`
+   - **Authorization callback URL:** `http://localhost:8000/auth/github/callback`
+4. Скопируйте `Client ID` и `Client Secret` в файл `.env`
+5. Перезапустите сервер
 
-Заполните:
+---
 
-Application name: LLM Chat App
+## 📡 API Endpoints
 
-Homepage URL: http://localhost:8000
+| Метод | URL | Описание | Требует JWT |
+|-------|-----|----------|-------------|
+| POST | `/auth/register` | Регистрация | ❌ |
+| POST | `/auth/login` | Вход (выдаёт access + refresh) | ❌ |
+| POST | `/auth/refresh` | Обновление access токена | ❌ |
+| GET | `/auth/github/login` | Перенаправление на GitHub | ❌ |
+| GET | `/auth/github/callback` | Обработка callback от GitHub | ❌ |
+| POST | `/chats/` | Создание чата | ✅ |
+| GET | `/chats/` | Список чатов пользователя | ✅ |
+| GET | `/chats/{id}/messages` | История сообщений чата | ✅ |
+| POST | `/ask/?chat_id={id}` | Отправить вопрос → получить ответ LLM | ✅ |
 
-Authorization callback URL: http://localhost:8000/auth/github/callback
+---
 
-Скопируйте Client ID и Client Secret в файл .env
+## 👤 Автор
 
-Перезапустите сервер
+XCastle09
+
+## 📅 Дата
+
+Апрель 2026
