@@ -15,6 +15,7 @@ async def ask_question(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    # Проверка принадлежности чата пользователю
     chat = await db.get(Chat, chat_id)
     if not chat or chat.user_id != user.id:
         raise HTTPException(403, "Not your chat")
